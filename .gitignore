@@ -31,6 +31,26 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
+
+# Firebase
+# Uncomment the following line if you want to exclude Firebase config files
+# google-services.json
+# GoogleService-Info.plist
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+
+# Logs
+logs/
+*.log

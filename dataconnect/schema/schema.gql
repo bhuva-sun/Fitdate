@@ -1,0 +1,182 @@
+# FitDate - Comprehensive Fitness Tracking Schema
+
+# User table is keyed by Firebase Auth UID
+type User @table {
+  id: String! @default(expr: "auth.uid")
+  email: String! @unique
+  displayName: String @col(dataType: "varchar(100)")
+  profileImageUrl: String @col(dataType: "text")
+  dateOfBirth: Date
+  height: Float  # in cm
+  weight: Float  # in kg
+  activityLevel: String! @col(dataType: "varchar(20)") @default(value: "moderate") # sedentary, light, moderate, active, very_active
+  fitnessGoals: [String!]! @default(value: "[]")
+  dailyCalorieGoal: Int @default(value: 2000)
+  dailyStepsGoal: Int @default(value: 10000)
+  weeklyWorkoutGoal: Int @default(value: 5)
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}
+
+# Exercise database - predefined exercises
+type Exercise @table {
+  id: UUID! @default(expr: "uuidV4()")
+  name: String! @col(dataType: "varchar(100)")
+  category: String! @col(dataType: "varchar(50)") # strength, cardio, flexibility, sports
+  targetMuscles: [String!]! # chest, back, legs, arms, core, etc.
+  equipment: String @col(dataType: "varchar(100)") # none, dumbbells, barbell, etc.
+  difficulty: String! @col(dataType: "varchar(20)") # beginner, intermediate, advanced
+  instructions: String! @col(dataType: "text")
+  imageUrl: String @col(dataType: "text")
+  videoUrl: String @col(dataType: "text")
+  caloriesPerMinute: Float
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Workout plans - predefined workout routines
+type WorkoutPlan @table {
+  id: UUID! @default(expr: "uuidV4()")
+  title: String! @col(dataType: "varchar(100)")
+  description: String! @col(dataType: "text")
+  category: String! @col(dataType: "varchar(50)") # strength, cardio, hiit, yoga, etc.
+  difficulty: String! @col(dataType: "varchar(20)")
+  estimatedDuration: Int! # in minutes
+  imageUrl: String @col(dataType: "text")
+  isPublic: Boolean! @default(value: true)
+  createdBy: String # user id if user-created
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Exercises within a workout plan
+type WorkoutPlanExercise @table(key: ["workoutPlan", "exercise"]) {
+  workoutPlan: WorkoutPlan!
+  exercise: Exercise!
+  sets: Int!
+  reps: Int
+  duration: Int # in seconds, for time-based exercises
+  restTime: Int! # in seconds
+  order: Int! # order within the workout
+  notes: String @col(dataType: "text")
+}
+
+# User's workout sessions
+type WorkoutSession @table {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  workoutPlan: WorkoutPlan
+  title: String! @col(dataType: "varchar(100)")
+  startTime: Timestamp!
+  endTime: Timestamp
+  totalCaloriesBurned: Int
+  notes: String @col(dataType: "text")
+  isCompleted: Boolean! @default(value: false)
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Individual exercises performed in a workout session
+type SessionExercise @table {
+  id: UUID! @default(expr: "uuidV4()")
+  session: WorkoutSession!
+  exercise: Exercise!
+  totalCaloriesBurned: Int
+  notes: String @col(dataType: "text")
+  order: Int!
+  isCompleted: Boolean! @default(value: false)
+}
+
+# Individual sets within an exercise
+type SessionSet @table {
+  id: UUID! @default(expr: "uuidV4()")
+  sessionExercise: SessionExercise!
+  setNumber: Int!
+  reps: Int
+  weight: Float # in kg
+  duration: Int # in seconds for time-based exercises
+  restTime: Int # in seconds
+  isCompleted: Boolean! @default(value: false)
+}
+
+# Food database - nutritional information
+type Food @table {
+  id: UUID! @default(expr: "uuidV4()")
+  name: String! @col(dataType: "varchar(100)")
+  brand: String @col(dataType: "varchar(100)")
+  barcode: String @col(dataType: "varchar(50)")
+  servingSize: String! @col(dataType: "varchar(50)")
+  caloriesPerServing: Float!
+  proteinPerServing: Float!
+  carbsPerServing: Float!
+  fatPerServing: Float!
+  fiberPerServing: Float
+  sugarPerServing: Float
+  sodiumPerServing: Float
+  imageUrl: String @col(dataType: "text")
+  isPublic: Boolean! @default(value: true)
+  createdBy: String # user id if user-created
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# User's daily meals
+type Meal @table {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  name: String! @col(dataType: "varchar(50)") # breakfast, lunch, dinner, snack
+  date: Date!
+  totalCalories: Float @default(value: 0)
+  totalProtein: Float @default(value: 0)
+  totalCarbs: Float @default(value: 0)
+  totalFat: Float @default(value: 0)
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Food items in a meal
+type MealFood @table(key: ["meal", "food"]) {
+  meal: Meal!
+  food: Food!
+  quantity: Float! # multiplier for serving size
+  calories: Float!
+  protein: Float!
+  carbs: Float!
+  fat: Float!
+  addedAt: Timestamp! @default(expr: "request.time")
+}
+
+# Daily activity and health metrics
+type DailyActivity @table {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  date: Date!
+  steps: Int @default(value: 0)
+  activeMinutes: Int @default(value: 0)
+  caloriesBurned: Int @default(value: 0)
+  sleepHours: Float
+  waterIntake: Float @default(value: 0) # in liters
+  restingHeartRate: Int
+  weight: Float # daily weight tracking
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}
+
+# User achievements and badges
+type Achievement @table {
+  id: UUID! @default(expr: "uuidV4()")
+  title: String! @col(dataType: "varchar(100)")
+  description: String! @col(dataType: "text")
+  iconName: String! @col(dataType: "varchar(50)")
+  category: String! @col(dataType: "varchar(50)") # workout, nutrition, activity
+  targetValue: Int!
+  targetUnit: String! @col(dataType: "varchar(20)") # workouts, steps, days, etc.
+  isActive: Boolean! @default(value: true)
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# User's achievement progress
+type UserAchievement @table(key: ["user", "achievement"]) {
+  user: User!
+  achievement: Achievement!
+  currentProgress: Int! @default(value: 0)
+  isCompleted: Boolean! @default(value: false)
+  completedAt: Timestamp
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}

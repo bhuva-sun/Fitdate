@@ -1,0 +1,10 @@
+specVersion: "v1"
+serviceId: "fitdate-v2"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "postgres"
+      cloudSql: {}
+connectorDirs: ["./connector"]

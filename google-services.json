@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "424288427812",
+    "project_id": "fitdate-586f0",
+    "storage_bucket": "fitdate-586f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424288427812:android:dfd04878dd38d9f1099db1",
+        "android_client_info": {
+          "package_name": "com.fitdate.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "424288427812-4dpm2pfkm2ea7smi7a12mpgk7lt1u44p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fitdate.app",
+            "certificate_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+          }
+        },
+        {
+          "client_id": "424288427812-pmjohj74vvelqfu9fto3bt23tmec3hrv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3XL_p3aUsfaO2SoJTXicTSIQe7c5v4To"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "424288427812-pmjohj74vvelqfu9fto3bt23tmec3hrv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

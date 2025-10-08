@@ -1,0 +1,343 @@
+# FitDate - Comprehensive Fitness Tracking Mutations
+
+# Create or update user profile
+mutation UpsertUserProfile(
+  $email: String!
+  $displayName: String
+  $profileImageUrl: String
+  $dateOfBirth: Date
+  $height: Float
+  $weight: Float
+  $activityLevel: String
+  $fitnessGoals: [String!]
+  $dailyCalorieGoal: Int
+  $dailyStepsGoal: Int
+  $weeklyWorkoutGoal: Int
+) @auth(level: USER) {
+  user_upsert(
+    data: {
+      id_expr: "auth.uid"
+      email: $email
+      displayName: $displayName
+      profileImageUrl: $profileImageUrl
+      dateOfBirth: $dateOfBirth
+      height: $height
+      weight: $weight
+      activityLevel: $activityLevel
+      fitnessGoals: $fitnessGoals
+      dailyCalorieGoal: $dailyCalorieGoal
+      dailyStepsGoal: $dailyStepsGoal
+      weeklyWorkoutGoal: $weeklyWorkoutGoal
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+# Start a new workout session
+mutation StartWorkoutSession(
+  $workoutPlanId: UUID
+  $title: String!
+) @auth(level: USER) {
+  workoutSession_insert(
+    data: {
+      userId_expr: "auth.uid"
+      workoutPlanId: $workoutPlanId
+      title: $title
+      startTime_expr: "request.time"
+    }
+  )
+}
+
+# Complete a workout session
+mutation CompleteWorkoutSession(
+  $sessionId: UUID!
+  $totalCaloriesBurned: Int
+  $notes: String
+) @auth(level: USER) {
+  workoutSession_update(
+    key: { id: $sessionId }
+    data: {
+      endTime_expr: "request.time"
+      totalCaloriesBurned: $totalCaloriesBurned
+      notes: $notes
+      isCompleted: true
+    }
+  )
+}
+
+# Add exercise to workout session
+mutation AddSessionExercise(
+  $sessionId: UUID!
+  $exerciseId: UUID!
+  $order: Int!
+  $notes: String
+) @auth(level: USER) {
+  sessionExercise_insert(
+    data: {
+      sessionId: $sessionId
+      exerciseId: $exerciseId
+      order: $order
+      notes: $notes
+    }
+  )
+}
+
+# Complete a session exercise
+mutation CompleteSessionExercise(
+  $sessionExerciseId: UUID!
+  $totalCaloriesBurned: Int
+) @auth(level: USER) {
+  sessionExercise_update(
+    key: { id: $sessionExerciseId }
+    data: {
+      totalCaloriesBurned: $totalCaloriesBurned
+      isCompleted: true
+    }
+  )
+}
+
+# Add a set to a session exercise
+mutation AddSessionSet(
+  $sessionExerciseId: UUID!
+  $setNumber: Int!
+  $reps: Int
+  $weight: Float
+  $duration: Int
+  $restTime: Int
+) @auth(level: USER) {
+  sessionSet_insert(
+    data: {
+      sessionExerciseId: $sessionExerciseId
+      setNumber: $setNumber
+      reps: $reps
+      weight: $weight
+      duration: $duration
+      restTime: $restTime
+    }
+  )
+}
+
+# Complete a set
+mutation CompleteSessionSet(
+  $sessionSetId: UUID!
+) @auth(level: USER) {
+  sessionSet_update(
+    key: { id: $sessionSetId }
+    data: { isCompleted: true }
+  )
+}
+
+# Create a custom food item
+mutation CreateCustomFood(
+  $name: String!
+  $brand: String
+  $servingSize: String!
+  $caloriesPerServing: Float!
+  $proteinPerServing: Float!
+  $carbsPerServing: Float!
+  $fatPerServing: Float!
+  $fiberPerServing: Float
+  $sugarPerServing: Float
+  $sodiumPerServing: Float
+  $imageUrl: String
+) @auth(level: USER) {
+  food_insert(
+    data: {
+      name: $name
+      brand: $brand
+      servingSize: $servingSize
+      caloriesPerServing: $caloriesPerServing
+      proteinPerServing: $proteinPerServing
+      carbsPerServing: $carbsPerServing
+      fatPerServing: $fatPerServing
+      fiberPerServing: $fiberPerServing
+      sugarPerServing: $sugarPerServing
+      sodiumPerServing: $sodiumPerServing
+      imageUrl: $imageUrl
+      isPublic: false
+      createdBy_expr: "auth.uid"
+    }
+  )
+}
+
+# Create a meal for a specific date
+mutation CreateMeal(
+  $name: String!
+  $date: Date!
+) @auth(level: USER) {
+  meal_insert(
+    data: {
+      userId_expr: "auth.uid"
+      name: $name
+      date: $date
+    }
+  )
+}
+
+# Add food to a meal
+mutation AddFoodToMeal(
+  $mealId: UUID!
+  $foodId: UUID!
+  $quantity: Float!
+  $calories: Float!
+  $protein: Float!
+  $carbs: Float!
+  $fat: Float!
+) @auth(level: USER) {
+  mealFood_insert(
+    data: {
+      mealId: $mealId
+      foodId: $foodId
+      quantity: $quantity
+      calories: $calories
+      protein: $protein
+      carbs: $carbs
+      fat: $fat
+    }
+  )
+}
+
+# Remove food from meal
+mutation RemoveFoodFromMeal(
+  $mealId: UUID!
+  $foodId: UUID!
+) @auth(level: USER) {
+  mealFood_delete(
+    key: { mealId: $mealId, foodId: $foodId }
+  )
+}
+
+# Update meal totals
+mutation UpdateMealTotals(
+  $mealId: UUID!
+  $totalCalories: Float!
+  $totalProtein: Float!
+  $totalCarbs: Float!
+  $totalFat: Float!
+) @auth(level: USER) {
+  meal_update(
+    key: { id: $mealId }
+    data: {
+      totalCalories: $totalCalories
+      totalProtein: $totalProtein
+      totalCarbs: $totalCarbs
+      totalFat: $totalFat
+    }
+  )
+}
+
+# Create or update daily activity
+mutation CreateDailyActivity(
+  $date: Date!
+  $steps: Int
+  $activeMinutes: Int
+  $caloriesBurned: Int
+  $sleepHours: Float
+  $waterIntake: Float
+  $restingHeartRate: Int
+  $weight: Float
+) @auth(level: USER) {
+  dailyActivity_insert(
+    data: {
+      userId_expr: "auth.uid"
+      date: $date
+      steps: $steps
+      activeMinutes: $activeMinutes
+      caloriesBurned: $caloriesBurned
+      sleepHours: $sleepHours
+      waterIntake: $waterIntake
+      restingHeartRate: $restingHeartRate
+      weight: $weight
+    }
+  )
+}
+
+# Update user achievement progress
+mutation UpdateAchievementProgress(
+  $achievementId: UUID!
+  $currentProgress: Int!
+) @auth(level: USER) {
+  userAchievement_upsert(
+    data: {
+      userId_expr: "auth.uid"
+      achievementId: $achievementId
+      currentProgress: $currentProgress
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+# Complete an achievement
+mutation CompleteAchievement(
+  $achievementId: UUID!
+  $currentProgress: Int!
+) @auth(level: USER) {
+  userAchievement_upsert(
+    data: {
+      userId_expr: "auth.uid"
+      achievementId: $achievementId
+      currentProgress: $currentProgress
+      isCompleted: true
+      completedAt_expr: "request.time"
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+# Create custom workout plan
+mutation CreateWorkoutPlan(
+  $title: String!
+  $description: String!
+  $category: String!
+  $difficulty: String!
+  $estimatedDuration: Int!
+  $imageUrl: String
+  $isPublic: Boolean!
+) @auth(level: USER) {
+  workoutPlan_insert(
+    data: {
+      title: $title
+      description: $description
+      category: $category
+      difficulty: $difficulty
+      estimatedDuration: $estimatedDuration
+      imageUrl: $imageUrl
+      isPublic: $isPublic
+      createdBy_expr: "auth.uid"
+    }
+  )
+}
+
+# Add exercise to workout plan
+mutation AddExerciseToWorkoutPlan(
+  $workoutPlanId: UUID!
+  $exerciseId: UUID!
+  $sets: Int!
+  $reps: Int
+  $duration: Int
+  $restTime: Int!
+  $order: Int!
+  $notes: String
+) @auth(level: USER) {
+  workoutPlanExercise_insert(
+    data: {
+      workoutPlanId: $workoutPlanId
+      exerciseId: $exerciseId
+      sets: $sets
+      reps: $reps
+      duration: $duration
+      restTime: $restTime
+      order: $order
+      notes: $notes
+    }
+  )
+}
+
+# Delete workout session
+mutation DeleteWorkoutSession(
+  $sessionId: UUID!
+) @auth(level: USER) {
+  workoutSession_delete(
+    key: { id: $sessionId }
+  )
+}

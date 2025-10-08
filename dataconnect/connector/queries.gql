@@ -1,0 +1,322 @@
+# FitDate - Comprehensive Fitness Tracking Queries
+
+# Get current user profile
+query GetUserProfile @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    id
+    email
+    displayName
+    profileImageUrl
+    dateOfBirth
+    height
+    weight
+    activityLevel
+    fitnessGoals
+    dailyCalorieGoal
+    dailyStepsGoal
+    weeklyWorkoutGoal
+    createdAt
+    updatedAt
+  }
+}
+
+# Get all public exercises
+query ListExercises($category: String, $difficulty: String, $equipment: String) @auth(level: PUBLIC) {
+  exercises(
+    where: {
+      _and: [
+        { category: { eq: $category } }
+        { difficulty: { eq: $difficulty } }
+        { equipment: { eq: $equipment } }
+      ]
+    }
+  ) {
+    id
+    name
+    category
+    targetMuscles
+    equipment
+    difficulty
+    instructions
+    imageUrl
+    videoUrl
+    caloriesPerMinute
+  }
+}
+
+# Get exercise by ID
+query GetExerciseById($id: UUID!) @auth(level: PUBLIC) {
+  exercise(id: $id) {
+    id
+    name
+    category
+    targetMuscles
+    equipment
+    difficulty
+    instructions
+    imageUrl
+    videoUrl
+    caloriesPerMinute
+  }
+}
+
+# Get all public workout plans
+query ListWorkoutPlans($category: String, $difficulty: String) @auth(level: PUBLIC) {
+  workoutPlans(
+    where: {
+      _and: [
+        { isPublic: { eq: true } }
+        { category: { eq: $category } }
+        { difficulty: { eq: $difficulty } }
+      ]
+    }
+    orderBy: { createdAt: DESC }
+  ) {
+    id
+    title
+    description
+    category
+    difficulty
+    estimatedDuration
+    imageUrl
+    createdAt
+  }
+}
+
+# Get workout plan details with exercises
+query GetWorkoutPlanById($id: UUID!) @auth(level: PUBLIC) {
+  workoutPlan(id: $id) {
+    id
+    title
+    description
+    category
+    difficulty
+    estimatedDuration
+    imageUrl
+    exercises: workoutPlanExercises_on_workoutPlan(orderBy: { order: ASC }) {
+      sets
+      reps
+      duration
+      restTime
+      order
+      notes
+      exercise {
+        id
+        name
+        category
+        targetMuscles
+        equipment
+        instructions
+        imageUrl
+        caloriesPerMinute
+      }
+    }
+  }
+}
+
+# Get user's workout sessions
+query ListUserWorkoutSessions($startDate: Timestamp, $endDate: Timestamp) @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    workoutSessions: workoutSessions_on_user(
+      where: {
+        _and: [
+          { startTime: { ge: $startDate } }
+          { startTime: { le: $endDate } }
+        ]
+      }
+      orderBy: { startTime: DESC }
+    ) {
+      id
+      title
+      startTime
+      endTime
+      totalCaloriesBurned
+      isCompleted
+      workoutPlan {
+        id
+        title
+        imageUrl
+      }
+    }
+  }
+}
+
+# Get workout session details
+query GetWorkoutSessionById($id: UUID!) @auth(level: USER) {
+  workoutSession(id: $id) {
+    id
+    title
+    startTime
+    endTime
+    totalCaloriesBurned
+    notes
+    isCompleted
+    workoutPlan {
+      id
+      title
+      description
+      imageUrl
+    }
+    exercises: sessionExercises_on_session(orderBy: { order: ASC }) {
+      id
+      totalCaloriesBurned
+      notes
+      order
+      isCompleted
+      exercise {
+        id
+        name
+        instructions
+        imageUrl
+      }
+      sets: sessionSets_on_sessionExercise(orderBy: { setNumber: ASC }) {
+        id
+        setNumber
+        reps
+        weight
+        duration
+        restTime
+        isCompleted
+      }
+    }
+  }
+}
+
+# Search foods
+query SearchFoods($searchQuery: String, $barcode: String) @auth(level: USER) {
+  foods(
+    where: {
+      _and: [
+        {
+          _or: [
+            { name: { contains: $searchQuery } }
+            { brand: { contains: $searchQuery } }
+            { barcode: { eq: $barcode } }
+          ]
+        }
+        { isPublic: { eq: true } }
+      ]
+    }
+    limit: 20
+  ) {
+    id
+    name
+    brand
+    servingSize
+    caloriesPerServing
+    proteinPerServing
+    carbsPerServing
+    fatPerServing
+    imageUrl
+  }
+}
+
+# Get user's meals for a specific date
+query GetUserMealsForDate($date: Date!) @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    meals: meals_on_user(
+      where: { date: { eq: $date } }
+      orderBy: { createdAt: ASC }
+    ) {
+      id
+      name
+      totalCalories
+      totalProtein
+      totalCarbs
+      totalFat
+      foods: mealFoods_on_meal {
+        quantity
+        calories
+        protein
+        carbs
+        fat
+        food {
+          id
+          name
+          servingSize
+          imageUrl
+        }
+      }
+    }
+  }
+}
+
+# Get user's daily activity for a date range
+query GetUserDailyActivity($startDate: Date!, $endDate: Date!) @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    dailyActivities: dailyActivities_on_user(
+      where: {
+        _and: [
+          { date: { ge: $startDate } }
+          { date: { le: $endDate } }
+        ]
+      }
+      orderBy: { date: ASC }
+    ) {
+      id
+      date
+      steps
+      activeMinutes
+      caloriesBurned
+      sleepHours
+      waterIntake
+      restingHeartRate
+      weight
+    }
+  }
+}
+
+# Get today's activity summary
+query GetTodayActivity($todayDate: Date!) @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    dailyStepsGoal
+    dailyCalorieGoal
+    todayActivity: dailyActivities_on_user(
+      where: { date: { eq: $todayDate } }
+      limit: 1
+    ) {
+      id
+      steps
+      activeMinutes
+      caloriesBurned
+      waterIntake
+      weight
+    }
+  }
+}
+
+# Get user achievements with progress
+query GetUserAchievements @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    achievements: userAchievements_on_user {
+      currentProgress
+      isCompleted
+      completedAt
+      achievement {
+        id
+        title
+        description
+        iconName
+        category
+        targetValue
+        targetUnit
+      }
+    }
+  }
+}
+
+# Get all available achievements
+query ListAchievements @auth(level: PUBLIC) {
+  achievements(
+    where: { isActive: { eq: true } }
+    orderBy: [{ category: ASC }, { targetValue: ASC }]
+  ) {
+    id
+    title
+    description
+    iconName
+    category
+    targetValue
+    targetUnit
+  }
+}
