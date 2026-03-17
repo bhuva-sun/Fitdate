@@ -17,56 +17,6 @@ A comprehensive fitness tracking application built with React Native, Expo, and 
 - **Activity**: Monitor steps, exercise sessions, and sleep patterns
 - **Profile**: Manage personal details and fitness goals
 
-## Setup Instructions
-
-### Prerequisites
-- Node.js and npm installed
-- Expo CLI: `npm install -g expo-cli`
-- Firebase account (for authentication and data storage)
-
-### Firebase Configuration
-1. Create a Firebase project at [https://console.firebase.google.com/](https://console.firebase.google.com/)
-2. Add a Web app to your Firebase project
-3. Enable Authentication in Firebase (Email/Password method)
-4. Create a Firestore database with appropriate security rules
-5. Copy your Firebase configuration from Project Settings
-6. Update the `firebaseConfig.js` file with your credentials:
-
-```javascript
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
-};
-```
-
-### Installation
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Start the development server: `npm run web`
-
-## Authentication Flow
-
-The app implements a complete authentication flow:
-
-1. Unauthenticated users are directed to sign-in screen
-2. New users can create accounts through the sign-up screen
-3. Upon successful authentication, users are redirected to the main app
-4. Authentication state is maintained across app sessions
-5. Protected routing prevents access to fitness features without authentication
-
-### Implementation Details
-
-- **AuthContext.js**: React Context that manages authentication state throughout the app
-- **app/_layout.tsx**: Implements conditional navigation based on auth state
-- **app/(auth)/_layout.tsx**: Manages authentication screen structure
-- **app/(auth)/sign-in.tsx**: Sign-in screen with email/password authentication
-- **app/(auth)/sign-up.tsx**: Registration screen for new users
-
 ## Project Structure
 
 ```
@@ -90,19 +40,3 @@ The app implements a complete authentication flow:
 └── firebaseConfig.js            # Firebase connection configuration
 ```
 
-## Testing the Authentication System
-
-1. Start the application with `npm run web`
-2. You'll be directed to the sign-in screen
-3. Click "Sign Up" to create a new account
-4. Enter your details and register
-5. Upon successful registration, you'll be redirected to the Dashboard
-6. Sign out and sign back in to verify the authentication flow
-7. Refresh the page to confirm that authentication state persists
-
-## Development Notes
-
-- Firebase emulators can be used for local development
-- Add `useEmulator` calls in firebaseConfig.js if using emulators
-- The app uses TypeScript for type safety
-- Expo Router manages navigation with file-based routing
